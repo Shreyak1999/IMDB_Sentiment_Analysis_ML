@@ -1,14 +1,27 @@
-import streamlit as st
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from src.predict import predict_sentiment
 
-st.title("🧠 Text Sentiment Analyzer")
+app = FastAPI(title="Text Sentiment Analyzer")
 
-user_input = st.text_area("Enter text to analyze:")
+# Define request schema
+class TextRequest(BaseModel):
+    text: str
 
-if st.button("Analyze Sentiment"):
-    if user_input.strip() == "":
-        st.warning("Please enter some text.")
-    else:
-        label, prob = predict_sentiment(user_input)
-        st.success(f"Sentiment: {label}")
-        st.write(f"Confidence: {prob:.2f}")
+# Define response schema
+class SentimentResponse(BaseModel):
+    sentiment: str
+    confidence: float
+
+@app.post("/analyze", response_model=SentimentResponse)
+def analyze_sentiment(request: TextRequest):
+    if request.text.strip() == "":
+        raise HTTPException(status_code=400, detail="Please provide some text.")
+    
+    label, prob = predict_sentiment(request.text)
+    return SentimentResponse(sentiment=label, confidence=prob)
+
+# Optional: simple health check
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
