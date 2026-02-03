@@ -1,5 +1,6 @@
-pandas
-numpy
-sklearn
 nltk
-streamlit
+streamlit>=1.30
+pandas>=1.5
+numpy<2
+matplotlib
+scikit-learn
